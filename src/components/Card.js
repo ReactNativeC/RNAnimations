@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, Image, TouchableWithoutFeedback } from "react-native";
+import { View, Text, Image, TouchableWithoutFeedback, Animated, Easing } from "react-native";
 import IconButton from "./IconButton";
 
 const Card = ({
@@ -9,13 +9,43 @@ const Card = ({
   bookmarkAction,
   shareAction
 }) => {
+  //declare an animated vlaue
+  let scaleValue = new Animated.Value(0); 
+  
+  //sepcify how the animated value will change over time
+  const cardScale = scaleValue.interpolate({ 
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 1.1, 1.2]
+  });
+
+  // set animated style
+  let transformStyle = { ...styles.card, transform: [{scale: cardScale}]}
+  
   return (
     <TouchableWithoutFeedback
-      onPress={() => {
+      onPressIn={() => {
+        //start animation
+        scaleValue.setValue(0);
+        Animated.timing(scaleValue, {
+          toValue: 1, 
+          duration: 250, 
+          easing: Easing.linear,
+          useNativeDriver: true
+        }).start();
+
         cardAction();
       }}
+
+      onPressOut={() => {
+        Animated.timing(scaleValue, {
+          toValue: 0 , 
+          duration: 100, 
+          easing: Easing.linear,
+          useNativeDriver: true
+        }).start();
+      }}
     >
-      <View style={styles.card}>
+      <Animated.View style={transformStyle}>
         <Image source={item.pic} style={styles.thumbnail} />
         <Text style={styles.name}>{item.name}</Text>
         <View style={styles.icons}>
@@ -29,7 +59,7 @@ const Card = ({
           <IconButton icon="bookmark" onPress={bookmarkAction} data={item} />
           <IconButton icon="share" onPress={shareAction} data={item} />
         </View>
-      </View>
+      </Animated.View>
     </TouchableWithoutFeedback>
   );
 };
@@ -41,7 +71,13 @@ const styles = {
     backgroundColor: "#fafbfc",
     padding: 10,
     margin: 10,
-    alignItems: "center"
+    alignItems: "center", 
+
+    shadowColor: 'black',
+    shadowOpacity: 0.26, 
+    shadowRadius: 8, 
+    shadowOffset: {width: 0, height: 2},
+    elevation: 5,
   },
   name: {
     fontSize: 15,
